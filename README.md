@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gorne MD EMR
 
-## Getting Started
+A ground-up replacement for a WordPress-based clinic EMR, built for a small
+Philippine medical practice (Dr. Gorne — adult and pediatric patients,
+distinguished by which doctor account is logged in). Scope: patient charts,
+vital signs, diagnoses, prescriptions, and medical certificates — no
+appointments, billing, inventory, or visit/queue concept.
 
-First, run the development server:
+Replaces `jazgornemd-theme`, a WordPress/ACF-based system with real security
+gaps (unauthenticated AJAX endpoints leaking clinical data) and fragile
+design (roles and patient segmentation hardcoded rather than modeled).
+
+## Stack
+
+- **Next.js 16** (App Router, TypeScript, Turbopack) + **Tailwind v4**
+- **shadcn/ui** (`base-nova` preset, built on `@base-ui/react`)
+- **Supabase** — Postgres, Auth, Storage, and RLS as the primary authorization
+  boundary
+- **React Hook Form** + **Zod** for forms and validation
+- **react-signature-canvas** for doctor signature capture
+- **puppeteer-core** + `@sparticuz/chromium` (planned, Phase 3) for
+  server-rendered PDF prescriptions/medcerts, sharing one HTML/CSS template
+  with the browser-print route
+
+## Roles
+
+Two roles only — `admin` (non-clinical superuser: account provisioning, data
+management) and `doctor` (clinical: owns a signature, issues prescriptions
+and medcerts under their own name). Both can view/manage patients, vitals,
+and diagnoses.
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # fill in your own Supabase project's keys
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The Supabase schema
+lives at `supabase/migrations/0001_init.sql` — apply it to a fresh Supabase
+project (`supabase db push`, or paste into the SQL editor) before first run.
+There is no public sign-up; the first admin account is provisioned directly
+in Supabase, and every account after that goes through `/admin/users`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project status & handoff
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project is under active, phased development. **[`HANDOFF.md`](./HANDOFF.md)**
+is the living checkpoint of what's built and what's next — read it first in
+any new session. It links out to the full architecture plan (schema, RLS
+design, auth/role model, PDF generation approach, and the phased roadmap).
 
-## Learn More
+`AGENTS.md` documents a Next.js 16 breaking-changes note for AI coding
+agents working in this repo; it's auto-managed by `next dev` and safe to
+ignore for human contributors.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev      # start the dev server (Turbopack)
+npm run build    # production build
+npm run lint     # ESLint
+```
