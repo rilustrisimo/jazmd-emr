@@ -36,22 +36,24 @@ Scaffolded and working:
 - `lib/validation/admin.ts` — `createUserSchema` (Zod) for account provisioning.
 - `app/api/admin/users/route.ts` — `POST`, admin-only, provisions a new `auth.users` + `profiles` row via service-role, rolls back the auth user if the profile insert fails, writes an `audit_log` row.
 - `.env.example` — the three Supabase env vars + `NEXT_PUBLIC_APP_BASE_URL`.
+- `lib/db/browser-client.ts` — `createClient()` via `@supabase/ssr`'s `createBrowserClient`, for use in client components.
+- `app/(auth)/login/page.tsx` — client component, email/password sign-in via the browser Supabase client, redirects to `/patients` on success.
+- `app/(app)/layout.tsx` — server component, calls `requireUser()`, redirects to `/login` on `AuthError`, renders a minimal shell (nav: Patients always; Signature settings for `doctor`; Users for `admin`).
+- `app/(app)/patients/page.tsx` — placeholder ("Patient list — coming in Phase 1"), exists so `/patients` doesn't 404 as the post-login redirect target.
+- `app/(app)/admin/users/page.tsx` + `components/admin/CreateUserForm.tsx` — React Hook Form + `Controller` (shadcn `Select` for role/scope, `useWatch` for the conditional scope field — plain `watch()` triggers a React Compiler "incompatible library" warning, `useWatch` doesn't) posting to `/api/admin/users`, `sonner` toast on success/failure. Guarded server-side in the page itself (`requireUser()` + role check, redirect non-admins to `/patients`) since `app/(app)/layout.tsx` only branches nav, it doesn't enforce roles.
+- `<Toaster />` wired into `app/layout.tsx`, root metadata updated from the create-next-app placeholder.
+- `README.md` rewritten with project-specific docs (was still create-next-app boilerplate).
+- Repo connected to `git@github.com:rilustrisimo/jazmd-emr.git` as `origin`, `main` pushed and tracked.
 
 Folders created but still empty (placeholders for upcoming work, not yet populated):
-`app/(auth)/login/`, `app/(app)/patients/new/`, `app/(app)/settings/signature/`, `app/(app)/settings/doctor-profile/`, `app/(app)/admin/users/`, `app/api/patients/`, `app/api/signatures/`, `app/api/doctor-profiles/`, `components/patients/`, `components/records/`, `components/signature/`, `components/print/`.
+`app/(app)/patients/new/`, `app/(app)/settings/signature/`, `app/(app)/settings/doctor-profile/`, `app/api/patients/`, `app/api/signatures/`, `app/api/doctor-profiles/`, `components/patients/`, `components/records/`, `components/signature/`, `components/print/`.
 
 ## What's next (pick up here)
 
-Still needed to close out **Phase 0** (per the plan's exit criteria: admin logs in, provisions a doctor account, both see a role-scoped empty shell, and a push to `main` deploys to Vercel automatically):
+Phase 0's UI/code is now complete. What's left to close out Phase 0 (per the plan's exit criteria: admin logs in, provisions a doctor account, both see a role-scoped empty shell, and a push to `main` deploys to Vercel automatically) is entirely user-side cloud provisioning — there is no more code to write until that's done:
 
-1. `app/(auth)/login/page.tsx` — client component, email/password sign-in via a browser Supabase client (create `lib/db/browser-client.ts` using `@supabase/ssr`'s `createBrowserClient`, mirroring the pattern already used in `lib/auth/session.ts`'s server client), redirect to `/patients` on success.
-2. `app/(app)/layout.tsx` — server component, calls `requireUser()`, redirects to `/login` on `AuthError`, renders a minimal shell (nav: Patients always; Signature settings for `doctor`; Users for `admin`).
-3. `app/(app)/patients/page.tsx` — placeholder page for now ("Patient list — coming in Phase 1"), just needs to exist so `/patients` doesn't 404 as the post-login redirect target.
-4. `app/(app)/admin/users/page.tsx` + `components/admin/CreateUserForm.tsx` — a form (React Hook Form + `Controller` for the shadcn `Select` role/scope fields, since `Select` isn't a native input) posting to `/api/admin/users`, `sonner` toast on success/failure. Guard the page server-side: redirect non-admins to `/patients`.
-5. Wire `<Toaster />` (from `components/ui/sonner.tsx`) into `app/layout.tsx` so the toast above actually renders — **this edit was drafted but not yet applied**, still needs doing.
-6. `git add` + first commit. Then: push to a new GitHub repo — **note: the `gh` CLI is not installed on this machine**, so either install it (`brew install gh`) and `gh repo create`, or the user creates the empty repo on github.com and hands you the remote URL to `git remote add origin ... && git push -u origin main`.
-7. User creates the fresh Vercel project (connected to that new repo, for auto-deploy on push) and the fresh Supabase project, then hands over `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE` for local `.env` and Vercel's env vars. Apply `supabase/migrations/0001_init.sql` against that new project (`supabase db push` or paste into the SQL editor).
-8. Provision the first admin account directly in Supabase (there's no bootstrap UI for the very first account — every subsequent one goes through the `/api/admin/users` route once an admin exists) — either an `auth.users` row created via the Supabase dashboard plus a matching `profiles` row with `role='admin'`, or a one-off script.
-9. Verify Phase 0's exit criteria end-to-end, then move to **Phase 1** (patient chart CRUD) per the plan file.
+1. User creates the fresh Vercel project (connected to `rilustrisimo/jazmd-emr`, for auto-deploy on push) and the fresh Supabase project, then hands over `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE` for local `.env` and Vercel's env vars. Apply `supabase/migrations/0001_init.sql` against that new project (`supabase db push` or paste into the SQL editor).
+2. Provision the first admin account directly in Supabase (there's no bootstrap UI for the very first account — every subsequent one goes through the `/api/admin/users` route once an admin exists) — either an `auth.users` row created via the Supabase dashboard plus a matching `profiles` row with `role='admin'`, or a one-off script.
+3. Verify Phase 0's exit criteria end-to-end (admin login → provision a doctor → both land on a role-scoped `/patients` shell → push to `main` auto-deploys), then move to **Phase 1** (patient chart CRUD) per the plan file.
 
 `npm run lint` and `npm run build` were run against everything above — both clean. One environment note surfaced by the build, not yet acted on: `@supabase/supabase-js` warns that Node.js 20 (what's installed on this machine) is deprecated in favor of Node 22+ — not urgent, but worth upgrading Node before this warning becomes a hard requirement.
