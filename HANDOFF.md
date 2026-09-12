@@ -30,7 +30,7 @@ Scaffolded and working:
 - Installed: `@supabase/supabase-js`, `@supabase/ssr`, `@tanstack/react-query`, `react-hook-form`, `@hookform/resolvers`, `zod`, `react-signature-canvas`.
 - `lib/db/client.ts` — `getSupabaseClient('anon' | 'service')`.
 - `lib/auth/session.ts` — `requireUser()` (resolves session + `profiles` row via service-role read), `requireRole(profile, roles[])`, `AuthError`.
-- `middleware.ts` — session refresh + redirect unauthenticated requests to `/login` (via `@supabase/ssr`'s standard Next.js middleware pattern).
+- `proxy.ts` — session refresh + redirect unauthenticated requests to `/login` (via `@supabase/ssr`'s standard pattern, adapted to Next 16's `proxy` convention — this started as `middleware.ts`, then was migrated with `npx @next/codemod@canary middleware-to-proxy .` once the build warned it was deprecated; don't reintroduce a `middleware.ts` file).
 - `lib/print/page-size.ts` — the page-size constant described above.
 - `supabase/migrations/0001_init.sql` — **the full schema for all phases**, written now as one coherent migration rather than piecemeal: `profiles`, `doctor_profiles`, `doctor_signatures`, `patients`, `patient_lab_results`, `vital_signs`, `diagnoses`, `prescriptions`, `medcerts`, `audit_log`, storage buckets (`signatures`, `patient-photos`, `lab-results`) all private, and real RLS policies (not just the prose from the plan) including trigger-enforced soft-delete-admin-only on patients and immutable-except-void on prescriptions/medcerts. **This migration has not been applied to any Supabase project yet** — there is no Supabase project for this app yet (user is creating one fresh).
 - `lib/validation/admin.ts` — `createUserSchema` (Zod) for account provisioning.
@@ -54,4 +54,4 @@ Still needed to close out **Phase 0** (per the plan's exit criteria: admin logs 
 8. Provision the first admin account directly in Supabase (there's no bootstrap UI for the very first account — every subsequent one goes through the `/api/admin/users` route once an admin exists) — either an `auth.users` row created via the Supabase dashboard plus a matching `profiles` row with `role='admin'`, or a one-off script.
 9. Verify Phase 0's exit criteria end-to-end, then move to **Phase 1** (patient chart CRUD) per the plan file.
 
-Not yet run: `npm run lint` / `npm run build` against everything written so far — do that early in the new session to catch anything before building further on top of it.
+`npm run lint` and `npm run build` were run against everything above — both clean. One environment note surfaced by the build, not yet acted on: `@supabase/supabase-js` warns that Node.js 20 (what's installed on this machine) is deprecated in favor of Node 22+ — not urgent, but worth upgrading Node before this warning becomes a hard requirement.

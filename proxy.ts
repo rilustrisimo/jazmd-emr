@@ -8,7 +8,7 @@ const PUBLIC_PATHS = ['/login']
  * every request except /login requires a session, checked here rather
  * than left to each page to remember to enforce.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
