@@ -9,22 +9,6 @@ create type patient_type as enum ('adult', 'pedia');
 create type document_status as enum ('final', 'voided');
 
 -- ---------------------------------------------------------------------------
--- Helper: resolves the caller's role without recursing through profiles' own
--- RLS. SECURITY DEFINER runs as the function owner, bypassing RLS on the
--- single `select` inside — this is the standard Supabase pattern for
--- referencing a role table from other tables' policies.
--- ---------------------------------------------------------------------------
-create or replace function public.current_profile_role()
-returns user_role
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select role from public.profiles where id = auth.uid();
-$$;
-
--- ---------------------------------------------------------------------------
 -- profiles — 1:1 with auth.users
 -- ---------------------------------------------------------------------------
 create table profiles (
@@ -37,6 +21,25 @@ create table profiles (
 );
 
 alter table profiles enable row level security;
+
+-- ---------------------------------------------------------------------------
+-- Helper: resolves the caller's role without recursing through profiles' own
+-- RLS. SECURITY DEFINER runs as the function owner, bypassing RLS on the
+-- single `select` inside — this is the standard Supabase pattern for
+-- referencing a role table from other tables' policies. Defined after
+-- `profiles` deliberately: Postgres validates a SQL-language function body's
+-- referenced relations at CREATE FUNCTION time, so this must come after the
+-- table exists.
+-- ---------------------------------------------------------------------------
+create or replace function public.current_profile_role()
+returns user_role
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select role from public.profiles where id = auth.uid();
+$$;
 
 create policy "profiles: read own row or admin reads all"
   on profiles for select
