@@ -3,16 +3,7 @@ import Link from 'next/link'
 import { Stethoscope } from 'lucide-react'
 import { requireUser, AuthError } from '@/lib/auth/session'
 import { AppNav } from '@/components/layout/AppNav'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-
-function initials(fullName: string) {
-  return fullName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
-}
+import { UserMenu } from '@/components/layout/UserMenu'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let profile
@@ -38,16 +29,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
           <AppNav role={profile.role} />
 
-          <div className="ml-auto flex items-center gap-2.5">
-            <div className="text-right leading-tight">
-              <p className="text-sm font-medium text-foreground">{profile.fullName}</p>
-              <p className="text-xs text-muted-foreground capitalize">{profile.role}</p>
-            </div>
-            <Avatar>
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {initials(profile.fullName)}
-              </AvatarFallback>
-            </Avatar>
+          <div className="ml-auto">
+            <UserMenu fullName={profile.fullName} role={profile.role} />
           </div>
         </div>
       </header>
