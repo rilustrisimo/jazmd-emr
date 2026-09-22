@@ -51,13 +51,27 @@ First real admin account is provisioned (Jasmin Gorne) directly in Supabase, as 
 
 **Verified** with an automated Playwright run against the live dev server using a real (throwaway, fully torn down afterward) doctor + admin account pair: doctor creates a patient and sees it in their scoped list; a lab result persists; editing works; admin sees the same patient with no scope restriction and has a delete control the doctor correctly does not; soft-delete removes it from lists. This is the pattern to repeat for Phase 2/3 verification — spin up throwaway accounts via the service-role key (`auth/v1/admin/users`), test, then delete them (note: deleting an auth user with `audit_log` rows referencing it fails on the FK — clear those rows first if you need to clean up a throwaway account, real accounts should never need this).
 
+### Phase 2 — Vitals & Diagnosis (done)
+
+- `lib/validation/{vitals,diagnoses}.ts` — same `z.input`/`z.output` split as `lib/validation/patients.ts` (`VitalSignsFormValues`/`VitalSignsInput`, `DiagnosisFormValues`/`DiagnosisInput`), for the same empty-string-to-null transform reason. Reach for this pattern for any future form with optional/transformed fields (prescriptions, medcerts).
+- `app/api/patients/[id]/{vitals,diagnoses}/route.ts` (list, create) + `app/api/{vitals,diagnoses}/[id]/route.ts` (delete) — `requireUser()` only, **no** `requireRole`. Unlike patients/lab-results, the RLS policies for these two tables don't restrict delete to admin (either role can delete their own or anyone's vitals/diagnosis entries), and neither table has an *update* policy at all — records are append-only once created, so there's deliberately no PATCH/edit route for either.
+- `lib/patients/get-{vitals,diagnoses}.ts` — server-side fetchers for the chart page, same shape as `get-lab-results.ts`.
+- `components/records/{VitalSigns,Diagnoses}.tsx` — inline add-form + list + delete, same combined-component pattern as `components/patients/LabResults.tsx`. Wired into the chart page's Vitals/Diagnosis tabs in place of the `<ComingSoon phase="Phase 2" />` placeholders.
+
+**Verified** the same way as Phase 1: a throwaway doctor account records vitals (BMI generated correctly: 70kg/175cm → 22.9) and a diagnosis, both persist and display. One dev-only flake hit and ruled out during testing: a brand-new API route's literal first-ever request can return a bogus 200 with an empty body — Next dev's on-demand compilation appears to double-dispatch a route's first hit before it's warm. Confirmed not a real bug (isolated direct API call and a repeat UI run were both clean, 201/no errors) — production builds compile ahead of time, so this won't occur there. If you ever see a similarly inexplicable status code that doesn't match either of a route's own return paths on a route you *just* created, suspect this before the route's own logic.
+
 ## What's next (pick up here)
 
-**Phase 2 — Vitals & Diagnosis**, per the plan file: `vital_signs` (generated `bmi` column, already in the schema) and `diagnoses` (both doctor/admin read+write), added as real tabs on the patient chart page (`app/(app)/patients/[patientId]/page.tsx` already has `TabsContent value="vitals"` / `"diagnosis"` placeholders — replace `<ComingSoon phase="Phase 2" />` with real content). Follow the Phase 1 pattern: a `lib/validation/*.ts` schema, `app/api/patients/[id]/vitals|diagnoses/route.ts` + `app/api/vitals|diagnoses/[id]/route.ts`, small form components. Exit criteria per the plan: direct API testing (not just hidden UI) confirms role checks hold.
+**Phase 3 — Prescriptions, Med Certs, Signature, PDF**, per the plan file. This is the largest remaining phase and has a named risk to spike *first*, before building anything else in it: confirm `puppeteer-core` + `@sparticuz/chromium` actually fits Vercel's function size/cold-start limits (fallback if not: a small Playwright microservice on Fly.io/Render). Then, roughly in order:
+1. Signature capture (`react-signature-canvas`) at `/settings/signature` (folder already exists, empty) → `app/api/signatures/route.ts`, uploading to the private `signatures` bucket and flipping `doctor_signatures.is_active`.
+2. `doctor_profiles` management at `/settings/doctor-profile` (folder already exists, empty) — printed name, license number, clinic locations — needed before a prescription/medcert has a letterhead to render.
+3. `prescriptions`/`medcerts` create/void flow (both tables already in the schema, RLS already restricts insert to `role = 'doctor'` and update to the void transition only — no hard delete, medico-legal retention).
+4. Shared print/PDF template components (`components/print/PrescriptionDocument.tsx`/`MedcertDocument.tsx`) used by both a browser-print route and the PDF API route, per `lib/print/page-size.ts`.
+5. Wire the chart page's Prescriptions/Med certs placeholder tabs to real content, following the same pattern as Phase 1/2's tabs.
 
 Before or alongside that:
-- Confirm the Vercel project is actually connected and auto-deploying from `main` — unverified so far.
-- Physically measure the Rx pad against `lib/print/page-size.ts`'s placeholder before Phase 3 needs it for real.
+- **Physically measure the Rx pad** against `lib/print/page-size.ts`'s placeholder (139.7mm × 215.9mm) — this blocks Phase 3 sign-off per the plan, do it early.
+- Confirm the Vercel project is actually connected and auto-deploying from `main` — unverified in any session so far.
 - Node 20 deprecation warning from `@supabase/supabase-js` is still just a warning, not yet acted on.
 
-`npm run lint` and `npm run build` are clean as of the Phase 1 commit.
+`npm run lint` and `npm run build` are clean as of the Phase 2 commit.
