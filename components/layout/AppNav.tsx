@@ -15,7 +15,12 @@ export function AppNav({ role }: { role: Role }) {
 
   const links: NavLink[] = [
     { href: '/patients', label: 'Patients' },
-    ...(role === 'doctor' ? [{ href: '/settings/signature', label: 'Signature' }] : []),
+    ...(role === 'doctor'
+      ? [
+          { href: '/settings/doctor-profile', label: 'Doctor profile' },
+          { href: '/settings/signature', label: 'Signature' },
+        ]
+      : []),
     ...(role === 'admin' ? [{ href: '/admin/users', label: 'Users' }] : []),
   ]
 
