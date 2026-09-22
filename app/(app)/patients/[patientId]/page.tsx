@@ -1,11 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Pencil, Stethoscope } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { requireUser } from '@/lib/auth/session'
 import { getPatient } from '@/lib/patients/get-patient'
 import { getLabResults } from '@/lib/patients/get-lab-results'
 import { getVitals } from '@/lib/patients/get-vitals'
 import { getDiagnoses } from '@/lib/patients/get-diagnoses'
+import { getPrescriptions } from '@/lib/documents/get-prescriptions'
+import { getMedcerts } from '@/lib/documents/get-medcerts'
 import { computeAge } from '@/lib/patients/age'
 import { getSignedUrl } from '@/lib/storage/signed-url'
 import { Badge } from '@/components/ui/badge'
@@ -17,23 +19,14 @@ import { LabResults } from '@/components/patients/LabResults'
 import { PatientDeleteButton } from '@/components/patients/PatientDeleteButton'
 import { VitalSigns } from '@/components/records/VitalSigns'
 import { Diagnoses } from '@/components/records/Diagnoses'
+import { Prescriptions } from '@/components/records/Prescriptions'
+import { Medcerts } from '@/components/records/Medcerts'
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 text-sm text-foreground">{value ?? '—'}</dd>
-    </div>
-  )
-}
-
-function ComingSoon({ phase }: { phase: string }) {
-  return (
-    <div className="flex flex-col items-center gap-3 py-16 text-center">
-      <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Stethoscope className="size-6" />
-      </div>
-      <p className="text-sm text-muted-foreground">Coming in {phase}.</p>
     </div>
   )
 }
@@ -49,10 +42,12 @@ export default async function PatientChartPage({
 
   if (!patient) notFound()
 
-  const [labResults, vitals, diagnoses, photoUrl] = await Promise.all([
+  const [labResults, vitals, diagnoses, prescriptions, medcerts, photoUrl] = await Promise.all([
     getLabResults(patientId),
     getVitals(patientId),
     getDiagnoses(patientId),
+    getPrescriptions(patientId),
+    getMedcerts(patientId),
     patient.photo_storage_path ? getSignedUrl('patient-photos', patient.photo_storage_path) : null,
   ])
 
@@ -145,12 +140,16 @@ export default async function PatientChartPage({
         </TabsContent>
         <TabsContent value="prescriptions" className="mt-4">
           <Card>
-            <ComingSoon phase="Phase 3" />
+            <CardContent>
+              <Prescriptions patientId={patientId} initialPrescriptions={prescriptions} canIssue={actor.role === 'doctor'} />
+            </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="medcerts" className="mt-4">
           <Card>
-            <ComingSoon phase="Phase 3" />
+            <CardContent>
+              <Medcerts patientId={patientId} initialMedcerts={medcerts} canIssue={actor.role === 'doctor'} />
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>

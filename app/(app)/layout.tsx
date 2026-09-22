@@ -17,8 +17,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-secondary/30">
-      <header className="border-b border-border bg-background">
+    <div className="flex min-h-full flex-1 flex-col bg-secondary/30 print:block print:bg-white">
+      <header className="border-b border-border bg-background print:hidden">
         <div className="flex items-center gap-6 px-6 py-3">
           <Link href="/patients" className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -34,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </header>
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-6 print:p-0">{children}</main>
     </div>
   )
 }
