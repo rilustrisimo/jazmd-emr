@@ -4,6 +4,8 @@ import { Pencil, Stethoscope } from 'lucide-react'
 import { requireUser } from '@/lib/auth/session'
 import { getPatient } from '@/lib/patients/get-patient'
 import { getLabResults } from '@/lib/patients/get-lab-results'
+import { getVitals } from '@/lib/patients/get-vitals'
+import { getDiagnoses } from '@/lib/patients/get-diagnoses'
 import { computeAge } from '@/lib/patients/age'
 import { getSignedUrl } from '@/lib/storage/signed-url'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PatientPhotoUpload } from '@/components/patients/PatientPhotoUpload'
 import { LabResults } from '@/components/patients/LabResults'
 import { PatientDeleteButton } from '@/components/patients/PatientDeleteButton'
+import { VitalSigns } from '@/components/records/VitalSigns'
+import { Diagnoses } from '@/components/records/Diagnoses'
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -45,8 +49,10 @@ export default async function PatientChartPage({
 
   if (!patient) notFound()
 
-  const [labResults, photoUrl] = await Promise.all([
+  const [labResults, vitals, diagnoses, photoUrl] = await Promise.all([
     getLabResults(patientId),
+    getVitals(patientId),
+    getDiagnoses(patientId),
     patient.photo_storage_path ? getSignedUrl('patient-photos', patient.photo_storage_path) : null,
   ])
 
@@ -125,12 +131,16 @@ export default async function PatientChartPage({
 
         <TabsContent value="vitals" className="mt-4">
           <Card>
-            <ComingSoon phase="Phase 2" />
+            <CardContent>
+              <VitalSigns patientId={patientId} initialVitals={vitals} />
+            </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="diagnosis" className="mt-4">
           <Card>
-            <ComingSoon phase="Phase 2" />
+            <CardContent>
+              <Diagnoses patientId={patientId} initialDiagnoses={diagnoses} />
+            </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="prescriptions" className="mt-4">
