@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-const PUBLIC_PATHS = ['/login']
+const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password']
 
 /**
  * Replaces the old app's redirect_non_logged_users_to_specific_page():
