@@ -120,7 +120,7 @@ export function Diagnoses({ patientId, initialDiagnoses }: { patientId: string; 
                 <button
                   type="button"
                   onClick={() => handleDelete(d.id)}
-                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                  className="shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
                   aria-label="Delete diagnosis"
                 >
                   <Trash2 className="size-4" />

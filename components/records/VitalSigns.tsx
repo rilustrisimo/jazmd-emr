@@ -175,7 +175,7 @@ export function VitalSigns({ patientId, initialVitals }: { patientId: string; in
                 <button
                   type="button"
                   onClick={() => handleDelete(v.id)}
-                  className="text-muted-foreground hover:text-destructive"
+                  className="cursor-pointer text-muted-foreground hover:text-destructive"
                   aria-label="Delete vital signs"
                 >
                   <Trash2 className="size-4" />

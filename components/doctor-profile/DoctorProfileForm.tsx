@@ -174,7 +174,7 @@ export function DoctorProfileForm({
                 <button
                   type="button"
                   onClick={() => remove(index)}
-                  className="mt-6 shrink-0 text-muted-foreground hover:text-destructive"
+                  className="mt-6 shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
                   aria-label="Remove clinic location"
                 >
                   <Trash2 className="size-4" />

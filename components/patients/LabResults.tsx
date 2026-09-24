@@ -155,7 +155,7 @@ export function LabResults({
                   <button
                     type="button"
                     onClick={() => handleDelete(result.id)}
-                    className="text-muted-foreground hover:text-destructive"
+                    className="cursor-pointer text-muted-foreground hover:text-destructive"
                     aria-label="Delete lab result"
                   >
                     <Trash2 className="size-4" />
