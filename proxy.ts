@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password']
+// /api/cron is public because Vercel Cron invokes it with no session
+// cookie at all — it's protected by its own CRON_SECRET check instead.
+const PUBLIC_PATHS = ['/login', '/forgot-password', '/reset-password', '/api/cron']
 
 /**
  * Replaces the old app's redirect_non_logged_users_to_specific_page():
