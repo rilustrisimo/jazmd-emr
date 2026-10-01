@@ -33,6 +33,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
       return Response.json({ error: error.message }, { status: error.status })
     }
     console.error('[API /api/prescriptions/[id]/pdf] Render error:', error)
-    return Response.json({ error: 'Failed to generate PDF' }, { status: 500 })
+    // TEMPORARY debug detail — revert before shipping, see HANDOFF.md
+    return Response.json(
+      { error: 'Failed to generate PDF', debug: error instanceof Error ? { message: error.message, stack: error.stack } : String(error) },
+      { status: 500 }
+    )
   }
 }
