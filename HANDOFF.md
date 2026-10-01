@@ -104,6 +104,16 @@ Unlike every other phase's throwaway-account testing pattern, this data was deli
 
 `components/ui/button.tsx`'s base variant had no `cursor-pointer` (Tailwind v3+ dropped the implicit pointer cursor on `<button>` that v1/v2 had — this preset never added it back), so every `Button` usage showed the default arrow cursor on hover. Fixed there plus four hand-rolled icon-only `<button>` elements that don't go through the shared component (delete/remove triggers in `LabResults.tsx`, `VitalSigns.tsx`, `Diagnoses.tsx`, `DoctorProfileForm.tsx`). Deliberately left shadcn's menu/select items on `cursor-default` — that's this preset's intentional native-select-like design choice, not a bug, and out of scope for a report specifically about buttons.
 
+### Supabase keep-alive cron (done)
+
+Supabase pauses free-tier projects after ~7 days of no API activity. `vercel.json` schedules a daily Vercel Cron hit against `app/api/cron/keep-alive/route.ts`, which does a trivial `profiles` read — enough to count as activity. Optionally protected by a `CRON_SECRET` bearer check (Vercel sends this automatically if that env var is set on the Vercel project; not set anywhere yet, so the endpoint is currently open to anyone who finds the URL — low risk, since it only performs a harmless read, but set `CRON_SECRET` in Vercel's env vars if you want it locked down).
+
+**Real bug caught before shipping**: `proxy.ts` redirects every unauthenticated request to `/login` — Vercel's cron invocation carries no Supabase session cookie, so without adding `/api/cron` to `PUBLIC_PATHS`, the cron hit would have silently 307'd to `/login` forever, never once reaching Supabase, completely defeating the point. Caught by testing the route against a local dev server before pushing (status came back 307, not 200), not by inspection — the same discipline worth applying to any future route that's meant to be hit by something other than a logged-in browser.
+
+Also discovered while adding `CRON_SECRET` to `.env.example`: that file had **never actually been committed to this repo** — the `.env*` gitignore pattern (left over from `create-next-app`'s default) silently blocked it from every prior commit, despite containing no secrets, just variable names and placeholder values. Force-added it now (`git add -f`). If you add more env vars in the future, remember `.env.example` needs `-f` to actually get staged.
+
+Verified both locally (unauthenticated success when `CRON_SECRET` unset; correct 401/200 behavior when it is set) and against the live Vercel deployment (`https://jazmd-emr.vercel.app/api/cron/keep-alive` returns `{"ok":true,"pingedAt":"..."}`).
+
 ## What's next (pick up here)
 
 Phase 3 is fully done and verified on the real production deployment — nothing code-level is blocking anymore. What's left:
@@ -114,5 +124,6 @@ Phase 3 is fully done and verified on the real production deployment — nothing
 4. Node 20 deprecation warning from `@supabase/supabase-js` is still just a warning, not yet acted on.
 5. Supabase's default email service (used for the password-reset emails above) is rate-limited and meant for testing only — configure a real SMTP provider in Supabase Auth settings before relying on password reset (or any other auth email) in actual production use.
 6. Vercel's deployment-protection SSO wall still sits on the project's auto-generated `...-rilustrisimos-projects.vercel.app` alias (the custom `jazmd-emr.vercel.app` alias is not protected and is what's actually in use) — decide if that's intentional or worth cleaning up.
+7. Optional: set `CRON_SECRET` in Vercel's env vars to lock down `/api/cron/keep-alive` — currently open to anyone who finds the URL (low risk, read-only, but trivial to close).
 
 `npm run lint` and `npm run build` are clean as of the latest commit. **`npm run build` now runs webpack, not Turbopack — this takes noticeably longer locally than it used to; that's expected, not a regression.**
