@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Users, UserPlus } from 'lucide-react'
 import { computeAge } from '@/lib/patients/age'
@@ -28,6 +28,29 @@ export function PatientsList() {
   const [search, setSearch] = useState('')
   const [patients, setPatients] = useState<PatientRow[] | null>(null)
   const [isSearching, setIsSearching] = useState(false)
+  // Navigation via router.push() is wrapped in a React transition by Next's
+  // router — React deliberately keeps the current page visible with no
+  // Suspense fallback while a transition is pending (it only shows
+  // loading.tsx's fallback for a genuinely fresh mount), so a slow
+  // navigation here would otherwise show no feedback at all. useTransition
+  // gives an explicit isPending flag to drive our own spinner instead of
+  // relying on that fallback.
+  const [isPending, startTransition] = useTransition()
+  const [pendingId, setPendingId] = useState<string | null>(null)
+
+  function goToPatient(id: string) {
+    setPendingId(id)
+    startTransition(() => {
+      router.push(`/patients/${id}`)
+    })
+  }
+
+  function goToNewPatient() {
+    setPendingId('new')
+    startTransition(() => {
+      router.push('/patients/new')
+    })
+  }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -71,8 +94,12 @@ export function PatientsList() {
             className="h-11 rounded-xl pl-10 text-base"
           />
         </div>
-        <Button className="ml-auto h-11 rounded-full px-5" onClick={() => router.push('/patients/new')}>
-          <UserPlus className="size-4" />
+        <Button
+          className="ml-auto h-11 rounded-full px-5"
+          onClick={goToNewPatient}
+          disabled={isPending}
+        >
+          {isPending && pendingId === 'new' ? <Spinner /> : <UserPlus className="size-4" />}
           New patient
         </Button>
       </div>
@@ -104,25 +131,34 @@ export function PatientsList() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {patients.map((patient) => (
-                <TableRow
-                  key={patient.id}
-                  className="cursor-pointer"
-                  onClick={() => router.push(`/patients/${patient.id}`)}
-                >
-                  <TableCell className="font-medium text-foreground">
-                    {patient.last_name}, {patient.first_name} {patient.middle_name ?? ''}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="capitalize">
-                      {patient.patient_type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="capitalize">{patient.sex ?? '—'}</TableCell>
-                  <TableCell>{computeAge(patient.birth_date, patient.age_override) ?? '—'}</TableCell>
-                  <TableCell>{patient.contact_number ?? '—'}</TableCell>
-                </TableRow>
-              ))}
+              {patients.map((patient) => {
+                const isRowPending = isPending && pendingId === patient.id
+                return (
+                  <TableRow
+                    key={patient.id}
+                    className="cursor-pointer aria-disabled:pointer-events-none aria-disabled:opacity-50"
+                    aria-disabled={isPending && !isRowPending}
+                    onClick={() => goToPatient(patient.id)}
+                  >
+                    <TableCell className="font-medium text-foreground">
+                      {patient.last_name}, {patient.first_name} {patient.middle_name ?? ''}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="capitalize">
+                        {patient.patient_type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="capitalize">{patient.sex ?? '—'}</TableCell>
+                    <TableCell>{computeAge(patient.birth_date, patient.age_override) ?? '—'}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-between gap-2">
+                        {patient.contact_number ?? '—'}
+                        {isRowPending && <Spinner className="text-primary" />}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         )}
