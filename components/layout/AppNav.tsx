@@ -21,7 +21,12 @@ export function AppNav({ role }: { role: Role }) {
           { href: '/settings/signature', label: 'Signature' },
         ]
       : []),
-    ...(role === 'admin' ? [{ href: '/admin/users', label: 'Users' }] : []),
+    ...(role === 'admin'
+      ? [
+          { href: '/admin/users', label: 'Users' },
+          { href: '/admin/audit-log', label: 'Audit log' },
+        ]
+      : []),
   ]
 
   return (
