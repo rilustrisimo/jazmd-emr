@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { FileText, Plus, Printer, Download, Ban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
@@ -82,6 +83,7 @@ function VoidButton({ id, onVoided }: { id: string; onVoided: () => void }) {
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleVoid} disabled={isSubmitting} className="rounded-full">
+            {isSubmitting && <Spinner />}
             {isSubmitting ? 'Voiding…' : 'Void prescription'}
           </Button>
         </DialogFooter>
@@ -164,6 +166,7 @@ export function Prescriptions({
                 />
               </div>
               <Button type="submit" size="sm" className="rounded-full" disabled={isSubmitting}>
+                {isSubmitting && <Spinner />}
                 {isSubmitting ? 'Issuing…' : 'Sign & issue'}
               </Button>
             </form>

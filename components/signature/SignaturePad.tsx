@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import SignatureCanvas from 'react-signature-canvas'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 
 export function SignaturePad({
   onSave,
@@ -43,6 +44,7 @@ export function SignaturePad({
           Clear
         </Button>
         <Button type="button" size="sm" className="rounded-full" onClick={handleSave} disabled={isEmpty || isSaving}>
+          {isSaving && <Spinner />}
           {isSaving ? 'Saving…' : 'Save signature'}
         </Button>
       </div>

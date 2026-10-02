@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { ClipboardList, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
@@ -94,6 +95,7 @@ export function Diagnoses({ patientId, initialDiagnoses }: { patientId: string; 
                 <Textarea id="remarks" rows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
               </div>
               <Button type="submit" size="sm" className="rounded-full" disabled={isSubmitting}>
+                {isSubmitting && <Spinner />}
                 {isSubmitting ? 'Saving…' : 'Save diagnosis'}
               </Button>
             </form>

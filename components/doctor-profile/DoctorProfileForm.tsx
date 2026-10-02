@@ -11,6 +11,7 @@ import {
   type DoctorProfileInput,
 } from '@/lib/validation/doctor-profile'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
@@ -186,6 +187,7 @@ export function DoctorProfileForm({
       </section>
 
       <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-full text-base sm:w-auto sm:px-8">
+        {isSubmitting && <Spinner />}
         {isSubmitting ? 'Saving…' : 'Save doctor profile'}
       </Button>
     </form>

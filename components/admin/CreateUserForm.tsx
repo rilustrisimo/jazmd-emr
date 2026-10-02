@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { createUserSchema, type CreateUserInput } from '@/lib/validation/admin'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -117,6 +118,7 @@ export function CreateUserForm() {
       )}
 
       <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-full text-base">
+        {isSubmitting && <Spinner />}
         {isSubmitting ? 'Creating…' : 'Create account'}
       </Button>
     </form>

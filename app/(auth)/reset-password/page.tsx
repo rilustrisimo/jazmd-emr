@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -86,7 +87,11 @@ export default function ResetPasswordPage() {
           </div>
           <h1 className="mt-4 text-xl font-semibold text-foreground">Set a new password</h1>
 
-          {hasRecoverySession === false ? (
+          {hasRecoverySession === null ? (
+            <div className="mt-6 flex items-center justify-center py-6">
+              <Spinner className="size-6 text-primary" />
+            </div>
+          ) : hasRecoverySession === false ? (
             <>
               <p className="mt-2 text-sm text-muted-foreground">
                 This reset link is invalid or has expired. Request a new one.
@@ -125,11 +130,8 @@ export default function ResetPasswordPage() {
                 />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button
-                type="submit"
-                disabled={isSubmitting || hasRecoverySession === null}
-                className="h-11 w-full rounded-full text-base"
-              >
+              <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-full text-base">
+                {isSubmitting && <Spinner />}
                 {isSubmitting ? 'Saving…' : 'Update password'}
               </Button>
             </form>

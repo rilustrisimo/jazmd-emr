@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { ClipboardCheck, Plus, Printer, Download, Ban } from 'lucide-react'
 import { medcertSchema, type MedcertFormValues, type MedcertInput } from '@/lib/validation/medcerts'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -86,6 +87,7 @@ function VoidButton({ id, onVoided }: { id: string; onVoided: () => void }) {
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleVoid} disabled={isSubmitting} className="rounded-full">
+            {isSubmitting && <Spinner />}
             {isSubmitting ? 'Voiding…' : 'Void certificate'}
           </Button>
         </DialogFooter>
@@ -200,6 +202,7 @@ export function Medcerts({
                 <Textarea id="mcRemarks" rows={2} {...register('remarks')} />
               </div>
               <Button type="submit" size="sm" className="rounded-full" disabled={isSubmitting}>
+                {isSubmitting && <Spinner />}
                 {isSubmitting ? 'Issuing…' : 'Sign & issue'}
               </Button>
             </form>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,7 @@ export function PatientDeleteButton({ patientId, patientName }: { patientId: str
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} className="rounded-full">
+            {isDeleting && <Spinner />}
             {isDeleting ? 'Deleting…' : 'Delete'}
           </Button>
         </DialogFooter>

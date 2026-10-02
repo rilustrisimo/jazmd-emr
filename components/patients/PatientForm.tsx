@@ -4,6 +4,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { patientSchema, type PatientFormValues, type PatientInput } from '@/lib/validation/patients'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -203,6 +204,7 @@ export function PatientForm({
       </section>
 
       <Button type="submit" disabled={isSubmitting} className="h-11 w-full rounded-full text-base sm:w-auto sm:px-8">
+        {isSubmitting && <Spinner />}
         {isSubmitting ? 'Saving…' : submitLabel}
       </Button>
     </form>

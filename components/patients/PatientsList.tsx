@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Spinner, PageSpinner } from '@/components/ui/spinner'
 
 type PatientRow = {
   id: string
@@ -26,6 +27,7 @@ export function PatientsList() {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [patients, setPatients] = useState<PatientRow[] | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -38,8 +40,9 @@ export function PatientsList() {
         if (!response.ok) return
         const body = await response.json()
         setPatients(body.patients)
+        setIsSearching(false)
       } catch {
-        // aborted, ignore
+        // aborted, ignore — the next effect run will resolve isSearching
       }
     }, 250)
 
@@ -53,10 +56,17 @@ export function PatientsList() {
     <div>
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          {isSearching ? (
+            <Spinner className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          ) : (
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          )}
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setIsSearching(true)
+            }}
             placeholder="Search patients…"
             className="h-11 rounded-xl pl-10 text-base"
           />
@@ -69,7 +79,7 @@ export function PatientsList() {
 
       <Card className="mt-4">
         {patients === null ? (
-          <CardContent className="py-16 text-center text-sm text-muted-foreground">Loading…</CardContent>
+          <PageSpinner />
         ) : patients.length === 0 ? (
           <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
             <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">

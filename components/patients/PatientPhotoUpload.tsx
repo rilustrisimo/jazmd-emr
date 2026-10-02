@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Camera, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 
 export function PatientPhotoUpload({ patientId, signedUrl }: { patientId: string; signedUrl: string | null }) {
   const router = useRouter()
@@ -52,7 +53,7 @@ export function PatientPhotoUpload({ patientId, signedUrl }: { patientId: string
         disabled={isUploading}
         onClick={() => inputRef.current?.click()}
       >
-        <Camera className="size-4" />
+        {isUploading ? <Spinner /> : <Camera className="size-4" />}
         {isUploading ? 'Uploading…' : signedUrl ? 'Change photo' : 'Add photo'}
       </Button>
     </div>

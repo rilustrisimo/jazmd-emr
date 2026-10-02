@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -81,6 +82,7 @@ export default function LoginPage() {
               disabled={isSubmitting}
               className="h-11 w-full rounded-full text-base"
             >
+              {isSubmitting && <Spinner />}
               {isSubmitting ? 'Signing in…' : 'Sign in'}
             </Button>
           </form>
